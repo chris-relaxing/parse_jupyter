@@ -15,6 +15,7 @@ form = cgi.FieldStorage()
 # Get data from fields
 create_html = form.getvalue('create_html')
 selected_cells = form.getvalue('selected_cells')
+selected_filename = form.getvalue('selected_filename')
 ex_head = form.getvalue('EX_HEAD')
 ex_out = form.getvalue('EX_OUT')
 
@@ -50,7 +51,6 @@ def parseNotebook():
     header_cell_locations = []
     input_cell_locations = []
     output_cell_locations = []
-    sections_profile = []
     section_indexes = []
     section_types = []
     global cell_map
@@ -60,28 +60,20 @@ def parseNotebook():
     line_count = 0
     for line in source_lines:
         a = line.rstrip('\n')
-##        a = line
-
         if a == header_pattern:
             header_cell_locations.append(x)
-            p = '\n' + str(x) + '\tHEADER'
-            sections_profile.append(p)
             section_types.append("HEADER")
             section_indexes.append(x)
             line_count += 1
 
         if a == input_pattern:
             input_cell_locations.append(x)
-            p = str(x) + '\tIN'
-            sections_profile.append(p)
             section_types.append("IN")
             section_indexes.append(x)
             line_count += 1
 
         if a == output_pattern:
             output_cell_locations.append(x)
-            p = str(x) + '\tOUTPUT'
-            sections_profile.append(p)
             section_types.append("OUT")
             section_indexes.append(x)
             line_count += 1
@@ -97,13 +89,14 @@ def parseNotebook():
     y = 1
     L = section_indexes
     while y < len(L):
-        tup = (L[x], L[y]-1)
+##        tup = (L[x], L[y]-1)
+        tup = (L[x], L[y])
         section_ranges.append(tup)
         x += 1
         y += 1
 
-##    last_range = (L[-1], end_of_doc-1)
-##    section_ranges.append(last_range)
+    last_range = (L[-1], end_of_doc-1)
+    section_ranges.append(last_range)
 
     # Create a dictionary to store the complete picture
     # keys = cell numbers
@@ -217,6 +210,7 @@ def interface_form():
 
     form_bottom = """
     <BR><BR>
+    Choose file name for the cells: <INPUT TYPE=TEXT NAME="selected_filename"> .html
     <BR><BR><BR>
 
     Exclude Headers *<INPUT TYPE=RADIO NAME="EX_HEAD" VALUE="Exclude Headers" style='margin-right:3em'>
@@ -253,8 +247,9 @@ def createHTML():
         print "Made it this far.."
 
         template_path = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\templates\\"
-        selected_filename = "test1.html"
-##        selected_filename += ".html"
+##        selected_filename = "test3.html"
+        global selected_filename
+        selected_filename = selected_filename + ".html"
 ##        writepath = "C:\\Users\\christon\\Desktop\\Jupyter Notebook Parse\\builds\\" + selected_filename
         writepath = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\builds\\" + selected_filename
 
@@ -269,7 +264,8 @@ def createHTML():
             writer.write(line)
         # num 	{'HEADER': (11748, 11756), 'OUT': (11773, 11788), 'IN': (11757, 11772)}
         for num in selected_cells:
-            writer.write('\n<!-- --------- Beginning of next cell --------- -->\n')
+            begin_next_cell = r'<!--  Beginning of next cell  -->'
+            writer.write('\n\n' + begin_next_cell + '\n')
             header = cell_map[num].get('HEADER', '')
             if header:
                 header_range = header[0]
@@ -278,6 +274,7 @@ def createHTML():
                 end = header_range[1]
                 header_block = page_source[start: end]
                 for line in header_block:
+                    line = line.encode('UTF-8')
                     writer.write(line + '\n')
             input_cell = cell_map[num].get('IN', '')
             if input_cell:
@@ -288,6 +285,7 @@ def createHTML():
                 end = input_range[1]
                 input_block = page_source[start: end]
                 for line in input_block:
+                    line = line.encode('UTF-8')
                     writer.write(line + '\n')
 
             output_cell = cell_map[num].get('OUT', '')
@@ -299,15 +297,8 @@ def createHTML():
                 end = output_range[1]
                 output_block = page_source[start: end]
                 for line in output_block:
+                    line = line.encode('UTF-8')
                     writer.write(line + '\n')
-
-
-##                print cell_map['1']['HEADER'][1]
-##                print cell_map['1']['IN'][0]
-##                print cell_map['1']['IN'][1]
-##                print cell_map['1']['OUT'][0]
-##                print cell_map['1']['OUT'][1]
-
 
         writer.close()
 
