@@ -27,6 +27,15 @@ target_notebook = r'http://bluegalaxy.info/new/sqlalchemy_tutorial.html'
 r = requests.get(target_notebook)
 page_source = r.text
 page_source = page_source.split('\n')
+##print "Content-type: text/html\n\n";
+##print "page_source<BR>", page_source
+##page_source = page_source.encode('UTF-8')
+writer = open(r'C:\Bitnami\wampstack-5.6.31-0\apache2\htdocs\builds\page_source.txt','w')
+for line in page_source:
+    line = line.encode('UTF-8')
+    writer.write(line + '\n')
+##writer.write(page_source)
+writer.close()
 
 
 def parseNotebook():
@@ -51,6 +60,7 @@ def parseNotebook():
     line_count = 0
     for line in source_lines:
         a = line.rstrip('\n')
+##        a = line
 
         if a == header_pattern:
             header_cell_locations.append(x)
@@ -92,8 +102,8 @@ def parseNotebook():
         x += 1
         y += 1
 
-    last_range = (L[-1], end_of_doc-1)
-    section_ranges.append(last_range)
+##    last_range = (L[-1], end_of_doc-1)
+##    section_ranges.append(last_range)
 
     # Create a dictionary to store the complete picture
     # keys = cell numbers
@@ -240,14 +250,16 @@ def print_output():
 
 def createHTML():
     if create_html:
+        print "Made it this far.."
 
-        template_path = "C:\Bitnami\wampstack-5.6.31-0\apache2\htdocs\templates\\"
-        selected_filename = "test1"
-        selected_filename += ".html"
-        writepath = "C:\Bitnami\wampstack-5.6.31-0\apache2\htdocs\builds\\" + selected_filename
+        template_path = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\templates\\"
+        selected_filename = "test1.html"
+##        selected_filename += ".html"
+##        writepath = "C:\\Users\\christon\\Desktop\\Jupyter Notebook Parse\\builds\\" + selected_filename
+        writepath = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\builds\\" + selected_filename
 
         # Get top portion of html
-        build_top = template_path + "\nb_top.txt"
+        build_top = template_path + "\\nb_top.txt"
         f = open(build_top, 'r')
         top = f.readlines()
         f.close()
@@ -255,6 +267,48 @@ def createHTML():
         writer = open(writepath,'w')
         for line in top:
             writer.write(line)
+        # num 	{'HEADER': (11748, 11756), 'OUT': (11773, 11788), 'IN': (11757, 11772)}
+        for num in selected_cells:
+            writer.write('\n<!-- --------- Beginning of next cell --------- -->\n')
+            header = cell_map[num].get('HEADER', '')
+            if header:
+                header_range = header[0]
+                print "header_range", header_range
+                start = header_range[0]
+                end = header_range[1]
+                header_block = page_source[start: end]
+                for line in header_block:
+                    writer.write(line + '\n')
+            input_cell = cell_map[num].get('IN', '')
+            if input_cell:
+                input_range = input_cell[0]
+                print "input_range", input_range
+
+                start = input_range[0]
+                end = input_range[1]
+                input_block = page_source[start: end]
+                for line in input_block:
+                    writer.write(line + '\n')
+
+            output_cell = cell_map[num].get('OUT', '')
+            if output_cell:
+                output_range = output_cell[0]
+                print "output_range", output_range
+
+                start = output_range[0]
+                end = output_range[1]
+                output_block = page_source[start: end]
+                for line in output_block:
+                    writer.write(line + '\n')
+
+
+##                print cell_map['1']['HEADER'][1]
+##                print cell_map['1']['IN'][0]
+##                print cell_map['1']['IN'][1]
+##                print cell_map['1']['OUT'][0]
+##                print cell_map['1']['OUT'][1]
+
+
         writer.close()
 
 
@@ -262,6 +316,7 @@ def createHTML():
 def main():
     parseNotebook()
     print_output()
+    createHTML()
 
 if __name__ == '__main__':
     main()
