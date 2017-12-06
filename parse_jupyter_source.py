@@ -7,11 +7,6 @@ input_pattern = """<div class="cell border-box-sizing code_cell rendered">"""
 output_pattern = """<div class="output_wrapper">"""
 cell_number_pattern = """<div class="prompt input_prompt">"""
 
-# things to store:
-# 1. the range for each cell (values) - first store these as a list
-# 2. the cell number (keys)
-# how to determine the last range? take from starting to end of document
-
 # Load the html doc into an array of lines
 f = open(jupyter_source, 'r')
 source_lines = f.readlines()
@@ -31,11 +26,7 @@ with open(jupyter_source, 'r') as f:
     for line in f:
         a = line.rstrip('\n')
 
-        # If an input cell is found, then start gathering all subsequent cells into a string
-        # until a new pattern is found. Then read the input number.
-
         if a == header_pattern:
-##            print x, '\t', a, "------------------------------------"
             header_cell_locations.append(x)
             p = '\n' + str(x) + '\tHEADER'
             sections_profile.append(p)
@@ -44,7 +35,6 @@ with open(jupyter_source, 'r') as f:
             line_count += 1
 
         if a == input_pattern:
-##            print x, '\t', a
             input_cell_locations.append(x)
             p = str(x) + '\tIN'
             sections_profile.append(p)
@@ -53,7 +43,6 @@ with open(jupyter_source, 'r') as f:
             line_count += 1
 
         if a == output_pattern:
-##            print x, '\t', a
             output_cell_locations.append(x)
             p = str(x) + '\tOUTPUT'
             sections_profile.append(p)
@@ -62,27 +51,9 @@ with open(jupyter_source, 'r') as f:
             line_count += 1
 
         if a == '</html>':
-##            print x, '\t', a, " End of last cell range.."
             end_of_doc = x + 1
-
         x += 1
-
 num_sections = len(header_cell_locations)
-##print "There are", num_sections, "sections."
-##print header_cell_locations
-##print input_cell_locations
-##print output_cell_locations
-
-##for l in sections_profile:
-##    print l
-
-##for r in section_indexes:
-##    print r
-
-##print section_indexes
-##print section_types
-
-##print "End of doc:", end_of_doc
 
 # Calculate the ranges
 section_ranges = []
@@ -92,16 +63,11 @@ L = section_indexes
 while y < len(L):
     tup = (L[x], L[y]-1)
     section_ranges.append(tup)
-##    print tup
     x += 1
     y += 1
 
 last_range = (L[-1], end_of_doc-1)
 section_ranges.append(last_range)
-##print "Number of ranges:", len(section_ranges)
-
-##for r in section_ranges:
-##    print r
 
 # Create a dictionary to store the complete picture
 # keys = cell numbers
@@ -125,6 +91,7 @@ while x < len(section_ranges):
     if cell_type == "HEADER":
         HEADER = 1
         header_range = section_ranges[x]
+        header_block = block
 
     if cell_type == "IN":
         if HEADER == 1:
@@ -139,23 +106,14 @@ while x < len(section_ranges):
                 target_line = target_line.split('<')[0]
                 cell_number = target_line.split('[')[1]
                 cell_number = cell_number.split(']')[0]
-##                print "\n--------------cell number is:", cell_number
-##                print "previous was header", previous_header
                 cell_numbers.append(cell_number)
-                cell_map[cell_number] = {section_types[x]: section_ranges[x]}
-
+                cell_map[cell_number] = {section_types[x]: [section_ranges[x], block]}
                 if previous_header == 1:
-                    cell_map[cell_number]["HEADER"] = header_range
-
-##    print section_ranges[x], '\t',  section_types[x]
+                    cell_map[cell_number]["HEADER"] = [header_range, header_block]
     if section_types[x] == "OUT":
-        cell_map[cell_number]["OUT"] = section_ranges[x]
+        cell_map[cell_number]["OUT"] = [section_ranges[x], block]
     x += 1
 
-##print cell_numbers
-print "\nBefore:", len(cell_map.keys())
-for k, v in sorted(cell_map.iteritems()):
-    print k, '\t', v
 
 # Get rid of empty (non-numeric) keys
 
@@ -165,7 +123,17 @@ for k in cell_map.keys():
     except:
         del cell_map[k]
 
-print "\nAfter:", len(cell_map.keys())
-for k, v in sorted(cell_map.iteritems()):
-    print k, '\t', v
+##for k, v in sorted(cell_map.iteritems()):
+##    print k
+##    for i, j in sorted(v.iteritems()):
+##        print '\t', j[0], i
+##        print '\n', j[1]
 
+# Example usage 0 = range; 1 = html block
+
+print cell_map['1']['HEADER'][0]
+print cell_map['1']['HEADER'][1]
+print cell_map['1']['IN'][0]
+print cell_map['1']['IN'][1]
+print cell_map['1']['OUT'][0]
+print cell_map['1']['OUT'][1]
