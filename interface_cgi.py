@@ -118,14 +118,11 @@ def parseNotebook():
         y = 1
         L = section_indexes
         while y < len(L):
-    ##        tup = (L[x], L[y]-1)
             tup = (L[x], L[y])
             section_ranges.append(tup)
             x += 1
             y += 1
 
-##        last_range = (L[-1], end_of_doc-1)
-##        section_ranges.append(last_range)
 
         # Create a dictionary to store the complete picture
         # keys = cell numbers
@@ -172,16 +169,12 @@ def parseNotebook():
                 cell_map[cell_number]["OUT"] = [section_ranges[x], block]
             x += 1
 
-
         # Get rid of empty (non-numeric) keys
-
         for k in cell_map.keys():
             try:
                 int(k)
             except:
                 del cell_map[k]
-
-
 
 
 def interface_form():
@@ -190,7 +183,7 @@ def interface_form():
     global selected_notebook
     interface_form_string = """
     <FORM name="get_URL" METHOD=POST ACTION="http://1uslchriston.ad.here.com:90/cgi-bin/interface_cgi.py">
-    <table width="100%" cellpadding="0" cellspacing="0" valign="top" border="0">
+    <table width="100%%" cellpadding="0" cellspacing="0" valign="top" border="0">
         <tr>
             <td>
             URL of Jupyter Notebook input: <INPUT TYPE=TEXT NAME="get_URL" size="60">
@@ -198,37 +191,28 @@ def interface_form():
             </form>
             </td>
         </tr>
-        <tr>
-            <td>
-            <FORM name="select_cells" METHOD=POST ACTION="http://1uslchriston.ad.here.com:90/cgi-bin/interface_cgi.py">
-            <input class="button" type="button" value="Check All" onclick="javascript:checkAll('select_cells', true);">
-	       </td>
-	       <td align="right">
-	       <input class="button" type="button" value="Uncheck All" onclick="javascript:checkAll('select_cells', false);">
-	       </td>
-       </tr>
     </table>
-
     """
 
-    select_all_buttons = """
+    radio_button_exclusions = """
     Exclude Headers *<INPUT TYPE=RADIO NAME="EX_HEAD" VALUE="Exclude Headers" style='margin-right:3em'>
     Exclude Outputs *<INPUT TYPE=RADIO NAME="EX_OUT" VALUE="Exclude Outputs" style='margin-right:3em'>
     * Headers and outputs are included by default.
     <BR>
     """
-
-    print interface_form_string
-
     if cell_numbers:
-        print select_all_buttons
+        print interface_form_string
+        confirmed_cell_numbers = []
+        for number in cell_numbers:
+            if number in cell_map.keys():
+                confirmed_cell_numbers.append(number)
+        print '<center>'
+        printCheckboxes(confirmed_cell_numbers)
+        print radio_button_exclusions
+        print '</center>'
 
-    for number in cell_numbers:
-        if number in cell_map.keys():
-            checkbox = number + '<INPUT TYPE=CHECKBOX NAME="selected_cells" VALUE="%s" style="margin-right:3em">'
-            print checkbox % (number)
-
-
+    else:
+        print interface_form_string
 
     form_bottom = """
     <BR><BR>
@@ -242,10 +226,12 @@ def interface_form():
     <BR>
     """
     iframe =  """<iframe src="%s" scrolling="yes" width="100%%" height="800">"""
-    print "<BR><BR>create_html:<b>", create_html, "</b>"
-    print "<BR>selected_cells:<b>", selected_cells, "</b>"
-    print "<BR>ex_head:<b>", ex_head, "</b>"
-    print "<BR>ex_out:<b>", ex_out, "</b>"
+##    print "<BR><BR>create_html:<b>", create_html, "</b>"
+##    print "<BR>selected_cells:<b>", selected_cells, "</b>"
+##    print "<BR>ex_head:<b>", ex_head, "</b>"
+##    print "<BR>ex_out:<b>", ex_out, "</b>"
+##    print "<BR>Length of page_source<b>", len(page_source), "</b>"
+
     if get_URL:
         print "<BR>selected_notebook:<b>", get_URL, "</b>"
     elif selected_notebook != None:
@@ -259,47 +245,47 @@ def interface_form():
 
     if get_URL:
         print iframe % (get_URL)
-    elif createHTML and selected_notebook != None:
+    elif create_html and selected_notebook != None:
         print iframe % (selected_notebook)
 
 
-interface_top = """
-<html>
-<head>
-  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-<style>
-  body {
-      font-family: 'Roboto', sans-serif;
-      font-size: 16px;
-  }
-</style>
-</head>
-<body bgcolor="#ccc">
-
-<script type="text/javascript" language="javascript">
-    function checkAll(select_cells, checktoggle)
-    {
-      var checkboxes = new Array();
-      checkboxes = document[select_cells].getElementsByTagName('input');
-
-      for (var i=0; i<checkboxes.length; i++)  {
-        if (checkboxes[i].type == 'checkbox')   {
-          checkboxes[i].checked = checktoggle;
-        }
-      }
-    }
-</script>
-<h2>Select Cells to export</h2>
-
-"""
-
-
-interface_bottom = """
-</body>
-</html>"""
 
 
 def print_output():
+
+    interface_top = """
+    <html>
+    <head>
+      <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <style>
+      body {
+          font-family: 'Roboto', sans-serif;
+          font-size: 16px;
+      }
+    </style>
+    </head>
+    <body bgcolor="#fff">
+
+    <script type="text/javascript" language="javascript">
+        function checkAll(select_cells, checktoggle)
+        {
+          var checkboxes = new Array();
+          checkboxes = document[select_cells].getElementsByTagName('input');
+
+          for (var i=0; i<checkboxes.length; i++)  {
+            if (checkboxes[i].type == 'checkbox')   {
+              checkboxes[i].checked = checktoggle;
+            }
+          }
+        }
+    </script>
+    <h1>Jupyter Publish</h1>
+    """
+
+    interface_bottom = """
+    </body>
+    </html>"""
+
     print "Content-type: text/html\n\n";
     parseNotebook()
     print interface_top
@@ -309,10 +295,10 @@ def print_output():
 def createHTML():
 
     html_close = """
-</div>
-<div id="maintoolbar" class="navbar">
-</body>
-</html>
+    </div>
+    <div id="maintoolbar" class="navbar">
+    </body>
+    </html>
     """
 
     if create_html:
@@ -372,6 +358,102 @@ def createHTML():
         writer.write('\n' + html_close)
         writer.close()
 
+
+def printCheckboxes(cell_nums):
+    table_open = """
+        <BR><BR>
+        <table class="tg">
+          <tr>
+            <th class="tg-baqh" colspan="%s"><h2>Select cells to export</h2></th>
+          </tr>
+          <tr>
+    """
+
+    table_close = """
+          </tr>
+        </table>
+    """
+
+    table_row_separator = """
+          </tr>
+          <tr>
+    """
+
+    style = """
+    <style>
+        .tg  {
+            border-collapse:collapse;
+            border-spacing:3;
+            border-color:#aabcfe;
+            align: right;
+        }
+        .tg td {
+            padding:10px 5px;
+            overflow:hidden;
+            word-break:normal;
+            border-color:#aabcfe;
+            color:#000;
+            background-color:#e8edff;
+            align: right;
+        }
+        .tg th {
+            overflow:hidden;
+            word-break:normal;
+            color:#039;
+            background-color:#fff;
+            align: right;
+        }
+        .tg .tg-baqh{
+            margin-right:3em;
+            vertical-align:top;
+            color:#000;
+            align: right;
+        }
+        .tg .tg-6k2t {
+            background-color:#fff;
+            vertical-align:top;
+            align: right;
+        }
+        .tg td:hover {background-color: #D2E4FC;}
+
+    </style>
+    """
+
+    select_all_buttons = """
+    <FORM name="selected_cells" METHOD=POST ACTION="http://1uslchriston.ad.here.com:90/cgi-bin/interface_cgi.py">
+    """
+
+    select_all_buttons_backup = """
+            <td>
+            <FORM name="selected_cells" METHOD=POST ACTION="http://1uslchriston.ad.here.com:90/cgi-bin/interface_cgi.py">
+            <input class="button" type="button" value="Check All" onclick="javascript:checkAll('selected_cells', true);">
+	       </td>
+	       <td align="right">
+	       <input class="button" type="button" value="Uncheck All" onclick="javascript:checkAll('selected_cells', false);">
+	       </td>
+       </tr>
+       <tr>
+    """
+
+    default_table_cols = 16
+    print style
+    print select_all_buttons
+    print table_open % (default_table_cols)
+    row_counter = 1
+    for num in cell_nums:
+        actual_num = num
+        num = int(num)
+        if num < 10:
+            num = '0' + str(num)
+        else:
+            num = str(num)
+        print '<td class="tg-6k2t">%s<INPUT TYPE=CHECKBOX NAME="selected_cells" VALUE="%s" style="margin-left:1em;margin-right:1em"></td>' % (num, actual_num)
+        if row_counter == 16:
+            print table_row_separator
+            row_counter = 0
+        row_counter += 1
+
+    print table_close
 
 
 def main():
