@@ -216,7 +216,8 @@ def interface_form():
 
     form_bottom = """
     <BR><BR>
-    Choose file name for the cells: <INPUT TYPE=TEXT NAME="selected_filename"> .html
+    Choose file name for the extracted cells:<BR>
+    <INPUT TYPE=TEXT NAME="selected_filename"> .html
     <input type="hidden" name="selected_notebook" value="%s">
     <BR><BR><BR>
 
@@ -225,6 +226,7 @@ def interface_form():
 
     <BR>
     """
+
     iframe =  """<iframe src="%s" scrolling="yes" width="100%%" height="800">"""
 ##    print "<BR><BR>create_html:<b>", create_html, "</b>"
 ##    print "<BR>selected_cells:<b>", selected_cells, "</b>"
@@ -232,10 +234,7 @@ def interface_form():
 ##    print "<BR>ex_out:<b>", ex_out, "</b>"
 ##    print "<BR>Length of page_source<b>", len(page_source), "</b>"
 
-    if get_URL:
-        print "<BR>selected_notebook:<b>", get_URL, "</b>"
-    elif selected_notebook != None:
-        print "<BR>selected_notebook:<b>", selected_notebook, "</b>"
+
 
     # Place selected_notebook URL into the hidden tag
     if get_URL:
@@ -243,9 +242,16 @@ def interface_form():
     elif selected_notebook != None:
         print form_bottom % (selected_notebook)
 
+##    if get_URL:
+##        print "<BR>selected_notebook:<b>", get_URL, "</b>"
+##    elif selected_notebook != None:
+##        print "<BR>selected_notebook:<b>", selected_notebook, "</b>"
+
     if get_URL:
+        print "<BR>Viewing:", get_URL, "<BR>"
         print iframe % (get_URL)
     elif create_html and selected_notebook != None:
+        print "<BR>Viewing:", selected_notebook, "<BR>"
         print iframe % (selected_notebook)
 
 
