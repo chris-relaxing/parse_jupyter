@@ -187,7 +187,7 @@ def interface_form():
         <tr>
             <td>
             URL of Jupyter Notebook input: <INPUT TYPE=TEXT NAME="get_URL" size="60">
-            <INPUT TYPE=SUBMIT name="select_jupyter" VALUE="select_jupyter" style='margin-right:3em'>
+            <INPUT TYPE="SUBMIT" name="select_jupyter" VALUE="Select Jupyter" class="btn">
             </form>
             </td>
         </tr>
@@ -221,7 +221,7 @@ def interface_form():
     <input type="hidden" name="selected_notebook" value="%s">
     <BR><BR><BR>
 
-    <CENTER><INPUT TYPE=SUBMIT name="create_html" VALUE="Create HTML" style='margin-right:3em'></CENTER>
+    <CENTER><INPUT class="btn" TYPE=SUBMIT name="create_html" VALUE="Create HTML"></CENTER>
     </FORM>
 
     <BR>
@@ -234,6 +234,88 @@ def interface_form():
 ##    print "<BR>ex_out:<b>", ex_out, "</b>"
 ##    print "<BR>Length of page_source<b>", len(page_source), "</b>"
 
+##    tab_divs = """
+##    <div class="tab">
+##      <button class="tablinks" onclick="openTab(event, '%s')" id="defaultOpen">%s</button>
+##      <button class="tablinks" onclick="openTab(event, '%s')">%s</button>
+##    </div>
+##
+##    <div id="%s" class="tabcontent">
+##      <h3>%s</h3>
+##      <p>%s</p>
+##      <iframe src="%s" scrolling="yes" width="60%%" height="800">
+##    </div>
+##
+##    <div id="%s" class="tabcontent">
+##      <h3>%s</h3>
+##      <p>%s</p>
+##
+##    </div>
+##
+##    <script>
+##    function openTab(evt, resourceURL) {
+##        var i, tabcontent, tablinks;
+##        tabcontent = document.getElementsByClassName("tabcontent");
+##        for (i = 0; i < tabcontent.length; i++) {
+##            tabcontent[i].style.display = "none";
+##        }
+##        tablinks = document.getElementsByClassName("tablinks");
+##        for (i = 0; i < tablinks.length; i++) {
+##            tablinks[i].className = tablinks[i].className.replace(" active", "");
+##        }
+##        document.getElementById(resourceURL).style.display = "block";
+##        evt.currentTarget.className += " active";
+##    }
+##
+##    // Get the element with id="defaultOpen" and click on it
+##    document.getElementById("defaultOpen").click();
+##    </script>
+##    """
+
+    tab_divs = """
+    <div class="tab">
+      <button class="tablinks" onclick="openTab(event, '%s');loadiFrame('%s')" id="defaultOpen">%s</button>
+      <button class="tablinks" onclick="openTab(event, '%s');loadiFrame('%s')">%s</button>
+    </div>
+
+    <div id="%s" class="tabcontent">
+      <p>%s</p>
+    </div>
+
+    <div id="%s" class="tabcontent">
+      <p>%s</p>
+    </div>
+
+    <script>
+    function openTab(evt, option) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(option).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("defaultOpen").click();
+
+    function loadiFrame(url) {
+        iframe_source = '<iframe src="' + url + '" scrolling="yes" width="100%%" height="800">'
+        document.getElementById("iframe").innerHTML = iframe_source;
+    }
+
+    </script>
+    <div id="iframe">
+        <iframe src="%s" scrolling="yes" width="100%%" height="800">
+    </div>
+
+    """
 
 
     # Place selected_notebook URL into the hidden tag
@@ -248,12 +330,21 @@ def interface_form():
 ##        print "<BR>selected_notebook:<b>", selected_notebook, "</b>"
 
     if get_URL:
-        print "<BR>Viewing:", get_URL, "<BR>"
+##        print "<BR>Viewing:", get_URL, "<BR>"
         print iframe % (get_URL)
     elif create_html and selected_notebook != None:
-        print "<BR>Viewing:", selected_notebook, "<BR>"
-        print iframe % (selected_notebook)
+        createHTML()
+##        print "<BR>Viewing:", selected_notebook, "<BR>"
+        input_label = "Input HTML"
+        output_label = "Extracted Cells HTML"
+##        iframe_html_writepath = 'file:///' + html_writepath
+##        iframe_html_writepath = html_writepath
+        iframe_html_writepath = 'http://1uslchriston.ad.here.com:90/builds/' + selected_filename
 
+        print tab_divs % (input_label, selected_notebook, input_label, output_label, iframe_html_writepath, output_label,
+                          input_label, selected_notebook, output_label, iframe_html_writepath, selected_notebook)
+        # Turn off for testing
+##        print iframe % (selected_notebook)
 
 
 
@@ -264,10 +355,67 @@ def print_output():
     <head>
       <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <style>
-      body {
-          font-family: 'Roboto', sans-serif;
-          font-size: 16px;
-      }
+          body {
+              font-family: 'Roboto', sans-serif;
+              font-size: 16px;
+          }
+
+        .btn {
+          -webkit-border-radius: 8;
+          -moz-border-radius: 8;
+          -webkit-box-shadow: 0px 2px 5px #666666;
+          -moz-box-shadow: 0px 2px 5px #666666;
+          box-shadow: 0px 2px 5px #666666;
+          color: #ffffff;
+          font-size: 14px;
+          background: #0369ad;
+          padding: 3px 15px 4px 15px;
+          text-decoration: none;
+        }
+
+        .btn:hover {
+          background: #299be6;
+          text-decoration: none;
+        }
+
+
+        /* Style the tab */
+        div.tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        /* Style the buttons inside the tab */
+        div.tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        div.tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        div.tab button.active {
+            background-color: #D2E4FC;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
     </style>
     </head>
     <body bgcolor="#fff">
@@ -310,9 +458,10 @@ def createHTML():
     if create_html:
         global selected_filename
         global page_source
+        global html_writepath
         template_path = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\templates\\"
         selected_filename = selected_filename + ".html"
-        writepath = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\builds\\" + selected_filename
+        html_writepath = "C:\\Bitnami\\wampstack-5.6.31-0\\apache2\\htdocs\\builds\\" + selected_filename
 
         # Get top portion of html
         build_top = template_path + "\\nb_top.txt"
@@ -320,7 +469,7 @@ def createHTML():
         top = f.readlines()
         f.close()
 
-        writer = open(writepath,'w')
+        writer = open(html_writepath,'w')
         for line in top:
             writer.write(line)
         # num 	{'HEADER': (11748, 11756), 'OUT': (11773, 11788), 'IN': (11757, 11772)}
@@ -330,7 +479,7 @@ def createHTML():
             header = cell_map[num].get('HEADER', '')
             if header:
                 header_range = header[0]
-                print "header_range", header_range
+                ## print "header_range", header_range
                 start = header_range[0]
                 end = header_range[1]
                 header_block = page_source[start: end]
@@ -340,7 +489,7 @@ def createHTML():
             input_cell = cell_map[num].get('IN', '')
             if input_cell:
                 input_range = input_cell[0]
-                print "input_range", input_range
+                ## print "input_range", input_range
 
                 start = input_range[0]
                 end = input_range[1]
@@ -352,7 +501,7 @@ def createHTML():
             output_cell = cell_map[num].get('OUT', '')
             if output_cell:
                 output_range = output_cell[0]
-                print "output_range", output_range
+                ## print "output_range", output_range
 
                 start = output_range[0]
                 end = output_range[1]
@@ -432,10 +581,10 @@ def printCheckboxes(cell_nums):
     select_all_buttons_backup = """
             <td>
             <FORM name="selected_cells" METHOD=POST ACTION="http://1uslchriston.ad.here.com:90/cgi-bin/interface_cgi.py">
-            <input class="button" type="button" value="Check All" onclick="javascript:checkAll('selected_cells', true);">
+            <input class="btn" type="button" value="Check All" onclick="javascript:checkAll('selected_cells', true);">
 	       </td>
 	       <td align="right">
-	       <input class="button" type="button" value="Uncheck All" onclick="javascript:checkAll('selected_cells', false);">
+	       <input class="btn" type="button" value="Uncheck All" onclick="javascript:checkAll('selected_cells', false);">
 	       </td>
        </tr>
        <tr>
@@ -466,7 +615,7 @@ def main():
     loadNotebook()
     print_output()
     global page_source
-    createHTML()
+##    createHTML()
 
 if __name__ == '__main__':
     main()
