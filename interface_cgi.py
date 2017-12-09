@@ -1,13 +1,9 @@
 #!C:\Python27\python.exe -u
 
 # To do:
-# 1. Clean up code
-# 2. Add docstrings to all functions
-# 3. Clean up user interface
-# 4. Create a link to see the created html result (or popup window?)
-# 5. CSS for the buttons
-# 6. Command window version of the script?
-# 7. Think of a good name for the script
+# 1. Add docstrings to all functions
+# 2. Command window version of the script?
+
 
 import requests     # to get the source of Jupyter Notebooks
 import cgi
@@ -18,7 +14,6 @@ form = cgi.FieldStorage()
 
 # globals
 page_source = ''
-##selected_notebook = ''
 cell_numbers = []
 
 # Get data from form fields
@@ -30,6 +25,7 @@ selected_notebook = form.getvalue('selected_notebook')
 get_URL = form.getvalue('get_URL')
 ex_head = form.getvalue('EX_HEAD')
 ex_out = form.getvalue('EX_OUT')
+ex_head_out = form.getvalue('EX_HEAD_OUT')
 
 
 # Make sure selected_cells is always an array
@@ -45,8 +41,6 @@ def loadNotebook():
 
             # Get the source of the target notebook:
             target_notebook = get_URL
-            ## target_notebook = r'http://bluegalaxy.info/new/sqlalchemy_tutorial.html'
-    ##        target_notebook = r'http://localhost:8888/notebooks/docs/Winpython_checker.ipynb'
             r = requests.get(target_notebook)
             page_source = r.text
             page_source = page_source.split('\n')
@@ -58,12 +52,6 @@ def loadNotebook():
             r = requests.get(target_notebook)
             page_source = r.text
             page_source = page_source.split('\n')
-
-##writer = open(r'C:\Bitnami\wampstack-5.6.31-0\apache2\htdocs\builds\page_source.txt','w')
-##for line in page_source:
-##    line = line.encode('UTF-8')
-##    writer.write(line + '\n')
-##writer.close()
 
 
 def parseNotebook():
@@ -142,7 +130,6 @@ def parseNotebook():
             s2 = section[1]
             block1 = source_lines[s1:s2]
             block = ''.join(block1)
-        ##    print  "--------------------------------------\n", block
             if cell_type == "HEADER":
                 HEADER = 1
                 header_range = section_ranges[x]
@@ -186,7 +173,10 @@ def interface_form():
     <table width="100%%" cellpadding="0" cellspacing="0" valign="top" border="0">
         <tr>
             <td>
-            URL of Jupyter Notebook input: <INPUT TYPE=TEXT NAME="get_URL" size="60">
+            <h3>Input</h3>
+            URL of Jupyter Notebook:
+            <BR>(must be an html document stored on the web)<BR>
+            <INPUT TYPE=TEXT NAME="get_URL" size="60">
             <INPUT TYPE="SUBMIT" name="select_jupyter" VALUE="Select Jupyter" class="btn">
             </form>
             </td>
@@ -194,12 +184,6 @@ def interface_form():
     </table>
     """
 
-    radio_button_exclusions = """
-    Exclude Headers *<INPUT TYPE=RADIO NAME="EX_HEAD" VALUE="Exclude Headers" style='margin-right:3em'>
-    Exclude Outputs *<INPUT TYPE=RADIO NAME="EX_OUT" VALUE="Exclude Outputs" style='margin-right:3em'>
-    * Headers and outputs are included by default.
-    <BR>
-    """
     if cell_numbers:
         print interface_form_string
         confirmed_cell_numbers = []
@@ -208,7 +192,6 @@ def interface_form():
                 confirmed_cell_numbers.append(number)
         print '<center>'
         printCheckboxes(confirmed_cell_numbers)
-        print radio_button_exclusions
         print '</center>'
 
     else:
@@ -216,8 +199,16 @@ def interface_form():
 
     form_bottom = """
     <BR><BR>
+    <h3>Output</h3>
     Choose file name for the extracted cells:<BR>
     <INPUT TYPE=TEXT NAME="selected_filename"> .html
+    <BR><BR>
+    <select NAME="inclusion">
+     <option value="default">Complete cells (default)</option>
+     <option value="EX_HEAD">Exclude headers</option>
+     <option value="EX_OUT">Exclude outputs</option>
+     <option value="EX_HEAD_OUT">Exclude headers and outputs</option>
+    </select>
     <input type="hidden" name="selected_notebook" value="%s">
     <BR><BR><BR>
 
@@ -227,51 +218,7 @@ def interface_form():
     <BR>
     """
 
-    iframe =  """<iframe src="%s" scrolling="yes" width="100%%" height="800">"""
-##    print "<BR><BR>create_html:<b>", create_html, "</b>"
-##    print "<BR>selected_cells:<b>", selected_cells, "</b>"
-##    print "<BR>ex_head:<b>", ex_head, "</b>"
-##    print "<BR>ex_out:<b>", ex_out, "</b>"
-##    print "<BR>Length of page_source<b>", len(page_source), "</b>"
-
-##    tab_divs = """
-##    <div class="tab">
-##      <button class="tablinks" onclick="openTab(event, '%s')" id="defaultOpen">%s</button>
-##      <button class="tablinks" onclick="openTab(event, '%s')">%s</button>
-##    </div>
-##
-##    <div id="%s" class="tabcontent">
-##      <h3>%s</h3>
-##      <p>%s</p>
-##      <iframe src="%s" scrolling="yes" width="60%%" height="800">
-##    </div>
-##
-##    <div id="%s" class="tabcontent">
-##      <h3>%s</h3>
-##      <p>%s</p>
-##
-##    </div>
-##
-##    <script>
-##    function openTab(evt, resourceURL) {
-##        var i, tabcontent, tablinks;
-##        tabcontent = document.getElementsByClassName("tabcontent");
-##        for (i = 0; i < tabcontent.length; i++) {
-##            tabcontent[i].style.display = "none";
-##        }
-##        tablinks = document.getElementsByClassName("tablinks");
-##        for (i = 0; i < tablinks.length; i++) {
-##            tablinks[i].className = tablinks[i].className.replace(" active", "");
-##        }
-##        document.getElementById(resourceURL).style.display = "block";
-##        evt.currentTarget.className += " active";
-##    }
-##
-##    // Get the element with id="defaultOpen" and click on it
-##    document.getElementById("defaultOpen").click();
-##    </script>
-##    """
-
+    iframe =  """<iframe src="%s" scrolling="yes" width="100%%" height="800" frameBorder="0">"""
     tab_divs = """
     <div class="tab">
       <button class="tablinks" onclick="openTab(event, '%s');loadiFrame('%s')" id="defaultOpen">%s</button>
@@ -306,17 +253,16 @@ def interface_form():
     document.getElementById("defaultOpen").click();
 
     function loadiFrame(url) {
-        iframe_source = '<iframe src="' + url + '" scrolling="yes" width="100%%" height="800">'
+        iframe_source = '<iframe src="' + url + '" scrolling="yes" width="100%%" height="800" frameBorder="0">'
         document.getElementById("iframe").innerHTML = iframe_source;
     }
 
     </script>
     <div id="iframe">
-        <iframe src="%s" scrolling="yes" width="100%%" height="800">
+        <iframe src="%s" scrolling="yes" width="100%%" height="800" frameBorder="0">
     </div>
 
     """
-
 
     # Place selected_notebook URL into the hidden tag
     if get_URL:
@@ -324,28 +270,16 @@ def interface_form():
     elif selected_notebook != None:
         print form_bottom % (selected_notebook)
 
-##    if get_URL:
-##        print "<BR>selected_notebook:<b>", get_URL, "</b>"
-##    elif selected_notebook != None:
-##        print "<BR>selected_notebook:<b>", selected_notebook, "</b>"
-
     if get_URL:
-##        print "<BR>Viewing:", get_URL, "<BR>"
         print iframe % (get_URL)
     elif create_html and selected_notebook != None:
         createHTML()
-##        print "<BR>Viewing:", selected_notebook, "<BR>"
         input_label = "Input HTML"
         output_label = "Extracted Cells HTML"
-##        iframe_html_writepath = 'file:///' + html_writepath
-##        iframe_html_writepath = html_writepath
         iframe_html_writepath = 'http://1uslchriston.ad.here.com:90/builds/' + selected_filename
 
         print tab_divs % (input_label, selected_notebook, input_label, output_label, iframe_html_writepath, output_label,
                           input_label, selected_notebook, output_label, iframe_html_writepath, selected_notebook)
-        # Turn off for testing
-##        print iframe % (selected_notebook)
-
 
 
 def print_output():
@@ -433,7 +367,7 @@ def print_output():
           }
         }
     </script>
-    <h1>Jupyter Publish</h1>
+    <center><h1>Jupyter Notebook Cell Export Tool</h1></center>
     """
 
     interface_bottom = """
@@ -479,7 +413,6 @@ def createHTML():
             header = cell_map[num].get('HEADER', '')
             if header:
                 header_range = header[0]
-                ## print "header_range", header_range
                 start = header_range[0]
                 end = header_range[1]
                 header_block = page_source[start: end]
@@ -489,27 +422,21 @@ def createHTML():
             input_cell = cell_map[num].get('IN', '')
             if input_cell:
                 input_range = input_cell[0]
-                ## print "input_range", input_range
-
                 start = input_range[0]
                 end = input_range[1]
                 input_block = page_source[start: end]
                 for line in input_block:
                     line = line.encode('UTF-8')
                     writer.write(line + '\n')
-
             output_cell = cell_map[num].get('OUT', '')
             if output_cell:
                 output_range = output_cell[0]
-                ## print "output_range", output_range
-
                 start = output_range[0]
                 end = output_range[1]
                 output_block = page_source[start: end]
                 for line in output_block:
                     line = line.encode('UTF-8')
                     writer.write(line + '\n')
-
         writer.write('\n' + html_close)
         writer.close()
 
@@ -607,7 +534,6 @@ def printCheckboxes(cell_nums):
             print table_row_separator
             row_counter = 0
         row_counter += 1
-
     print table_close
 
 
@@ -615,7 +541,6 @@ def main():
     loadNotebook()
     print_output()
     global page_source
-##    createHTML()
 
 if __name__ == '__main__':
     main()
